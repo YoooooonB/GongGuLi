@@ -3,15 +3,14 @@ package back.handler;
 import back.ResponseCode;
 import back.dao.board.DeleteBoardDAO;
 import back.dao.board.ModifyMyPostDAO;
-import back.dao.chatting.JoinChattingRoomDAO;
+import back.dao.chatting.GetChatRoomPortDAO;
 import back.dao.board.PostingDAO;
 import back.dao.GetInfoDAO;
 
 import back.request.board.DeleteBoardRequest;
 import back.request.board.ModifyMyPostRequest;
 import back.request.board.PostBoardRequest;
-import back.request.chatroom.JoinChatRoomRequest;
-import back.response.chatroom.JoinChatRoomResponse;
+import back.response.board.PostBoardResponse;
 
 import java.io.*;
 import java.net.Socket;
@@ -67,7 +66,7 @@ public class BoardHandler extends Thread {
         try {
             PostingDAO postingDAO = new PostingDAO();
             GetInfoDAO getInfoDAO = new GetInfoDAO();
-            JoinChattingRoomDAO joinChattingRoomDAO = new JoinChattingRoomDAO();
+            GetChatRoomPortDAO getChatRoomPortDAO = new GetChatRoomPortDAO();
 
             if (postBoardRequest.title().isBlank()) {
                 objectOutputStream.writeObject(ResponseCode.TITLE_MISSING);
@@ -85,27 +84,13 @@ public class BoardHandler extends Thread {
                 } else if (Integer.parseInt(postBoardRequest.maxPeopleNum()) <= 1) {
                     objectOutputStream.writeObject(ResponseCode.PEOPLE_NUM_UNDER_LIMIT);
                 } else {
-                    int port = joinChattingRoomDAO.assignChatRoomPort(); // 랜덤한 채팅방 포트를 할당한다.
+                    int port = getChatRoomPortDAO.assignChatRoomPort(); // 랜덤한 채팅방 포트를 할당한다.
 
                     if (postingDAO.posting(postBoardRequest, port)) {   //  DB로 게시글 생성 요청
                         objectOutputStream.writeObject(ResponseCode.POST_BOARD_SUCCESS); // 게시글 생성 성공 응답을 보낸다.
+                        objectOutputStream.writeObject(new PostBoardResponse(port));
                     } else {
                         objectOutputStream.writeObject(ResponseCode.POST_BOARD_FAILURE);
-                    }
-
-                    Object readObj = objectInputStream.readObject(); // 채팅방 입장 요청을 받는다.
-
-                    if (readObj instanceof JoinChatRoomRequest joinChatRoomRequest) { // 채팅방 입장 요청일 경우
-                        String nickName = getInfoDAO.getnickNameMethod(joinChatRoomRequest.uuid()); // uuid에 일치하는 닉네임을 가져옴
-
-                        if (nickName != null) {
-                            objectOutputStream.writeObject(ResponseCode.JOIN_CHATROOM_SUCCESS);
-                            objectOutputStream.writeObject(new JoinChatRoomResponse(nickName, port)); // 닉네임, 채팅방 port 정보를 보낸다.
-                        } else {
-                            objectOutputStream.writeObject(ResponseCode.JOIN_CHATROOM_FAILURE);
-                        }
-                    } else { // 그외의 요청이 들어올 경우
-                        objectOutputStream.writeObject(ResponseCode.JOIN_CHATROOM_FAILURE);
                     }
                 }
             }

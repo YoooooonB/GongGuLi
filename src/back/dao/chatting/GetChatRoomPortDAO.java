@@ -5,12 +5,12 @@ import serverStructure.ChatServer;
 import java.net.ServerSocket;
 import java.util.Random;
 
-public class JoinChattingRoomDAO {
+public class GetChatRoomPortDAO {
     private static final int MIN_PORT = 1029; //1029 ~ 49151에서 채팅방 서버가 생성됨
     private static final int MAX_PORT = 49151;
 
     public int assignChatRoomPort() {
-        int port = 0;
+        int port;
         while (true) {
             port = getRandomPortInRange(MIN_PORT, MAX_PORT);
 

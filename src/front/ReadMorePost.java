@@ -104,7 +104,7 @@ public class ReadMorePost {
                     if (responseCode.getKey() == ResponseCode.JOIN_CHATROOM_SUCCESS.getKey()) { //채팅방 입장 성공
                         JoinChatRoomResponse joinChatRoomResponse = (JoinChatRoomResponse) objectInputStream.readObject();
 
-                        new ChatClient(joinChatRoomResponse.nickName(), joinChatRoomResponse.chatPort(), uuid);
+                        new ChatClient(uuid, joinChatRoomResponse.chatPort());
                     } else { //채팅방 입장 실패
                         showErrorDialog(responseCode.getValue());
                     }

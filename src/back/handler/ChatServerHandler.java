@@ -1,6 +1,7 @@
 package back.handler;
 
 import back.ResponseCode;
+import back.dao.GetInfoDAO;
 import back.request.chatroom.GetParticipantsChatRoomRequest;
 import back.request.chatroom.JoinMessageChatRoomRequest;
 import back.request.chatroom.KickChatRoomRequest;
@@ -41,8 +42,10 @@ public class ChatServerHandler extends Thread {
 	public void run() {
 		try {
 			JoinMessageChatRoomRequest joinMessageChatRoomRequest = (JoinMessageChatRoomRequest) objectInputStream.readObject();
+			GetInfoDAO getInfoDAO = new GetInfoDAO();
+			String nickName = getInfoDAO.getnickNameMethod(joinMessageChatRoomRequest.uuid());
 
-			sendAll(new JoinMessageChatRoomResponse(joinMessageChatRoomRequest.nickName(), "이(가) 입장했습니다."));
+			sendAll(new JoinMessageChatRoomResponse(nickName, "이(가) 입장했습니다."));
 
 			if (list.size() == 1) { //처음으로 접속한 사람 즉 글쓴이에게 방장 권한 부여
 				master = true;
@@ -54,14 +57,14 @@ public class ChatServerHandler extends Thread {
 				if (readObj instanceof MessageChatRoomRequest messageChatRoomRequest) { //클라이언트 -> 서버 메세지 요청
 					if (master) { // 방장이 메세지를 보냈을 때
 						MessageChatRoomResponse messageChatRoomResponse = new MessageChatRoomResponse(
-								messageChatRoomRequest.nickName() + "(방장)",
+								nickName + "(방장)",
 								messageChatRoomRequest.message()
 						);
 
 						sendAll(messageChatRoomResponse);
 					} else { // 이외 사용자가 메세지를 보냈을 때
 						MessageChatRoomResponse messageChatRoomResponse = new MessageChatRoomResponse(
-								messageChatRoomRequest.nickName(),
+								nickName,
 								messageChatRoomRequest.message()
 						);
 

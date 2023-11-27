@@ -3,6 +3,7 @@ package front.mainPage;
 import back.ResponseCode;
 import back.request.board.PostBoardRequest;
 import back.request.chatroom.JoinChatRoomRequest;
+import back.response.board.PostBoardResponse;
 import back.response.chatroom.JoinChatRoomResponse;
 import front.ChatClient;
 import front.FrontSetting;
@@ -114,17 +115,17 @@ public class NewPost extends JFrame{
                         mainFrame.dispose();
                         new MainPage(uuid);
                         setSuccessPopUpFrame(" 글 작성 성공");
-
-//                        여기서 게시글을 만들때 할당 된 포트값을 받아와야 되는데 1시간동안 막 바꿔보다 안돼서 포기함
-//                        건우건우야 부탁해
-                        objectOutputStream.writeObject(new JoinChatRoomRequest(0, uuid));
+                        PostBoardResponse postBoardResponse = (PostBoardResponse) objectInputStream.readObject();
+                        int port = postBoardResponse.port();
+                        objectOutputStream.writeObject(new JoinChatRoomRequest(port, uuid));
 
                         responseCode = (ResponseCode) objectInputStream.readObject();
 
                         if (responseCode.getKey() == ResponseCode.JOIN_CHATROOM_SUCCESS.getKey()) { //채팅방 입장 성공
                             JoinChatRoomResponse joinChatRoomResponse = (JoinChatRoomResponse) objectInputStream.readObject();
 
-                            new ChatClient(joinChatRoomResponse.nickName(), joinChatRoomResponse.chatPort(), uuid);
+                            //  여기서 닉네임 필요 없을거 같은데      보낸 문자 저장할 때만 닉네임 식으로 저장하는게 더 나을듯
+                            new ChatClient(uuid, joinChatRoomResponse.chatPort());
                         } else if (responseCode.getKey() == ResponseCode.JOIN_CHATROOM_FAILURE.getKey()) { // 채팅방 입장 실패
                             showErrorDialog(responseCode.getValue());
                         }
