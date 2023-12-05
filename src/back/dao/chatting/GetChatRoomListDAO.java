@@ -7,9 +7,8 @@ import database.DBConnector;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public class GetChatRoomListDAO {
     Connection conn = null;
@@ -23,7 +22,7 @@ public class GetChatRoomListDAO {
         GetInfoDAO getInfoDAO = new GetInfoDAO();
         try {
             conn = DBConnector.getConnection();
-            String selectSQL = "SELECT * FROM chattingRoom WHERE port = ?";
+            String selectSQL = "SELECT * FROM chattingRoom WHERE port = ? ORDER BY madeTime DESC;";
 
             Iterator iterator = portList.iterator();
             while (iterator.hasNext()) {
@@ -38,7 +37,8 @@ public class GetChatRoomListDAO {
                             this.rs.getString("category"),
                             this.rs.getString("title"),
                             getInfoDAO.getNickNameMethod(rs.getString("masterUuid")),
-                            this.rs.getString("lastUpdatedTime")
+                            this.rs.getString("lastUpdatedTime"),
+                            this.rs.getObject("madeTime", LocalDateTime.class)
                     );
                     list.add(getChattingRoomResponse);
                 }
@@ -47,6 +47,16 @@ public class GetChatRoomListDAO {
             pt.close();
             conn.close();
 
+            Collections.sort(list, new Comparator<>() {
+                @Override
+                public int compare(GetChattingRoomResponse o2, GetChattingRoomResponse o1) {
+                    LocalDateTime localDateTime = o1.madeTime();
+                    LocalDateTime localDateTime1 = o2.madeTime();
+                    return localDateTime.compareTo(localDateTime1);
+                }
+            });
+
+            System.out.println(list);
             return list;
         } catch (Exception exception) {
             exception.printStackTrace();
