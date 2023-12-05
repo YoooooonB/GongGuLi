@@ -41,7 +41,7 @@ public class FrontSetting extends JFrame{
     public String myPageDB[][] = {{"", "", "", ""}};
 
     public String userInfoHeader[] = {"이름", "아이디", "지역", "휴대폰 번호", "생년월일"};
-    public String chattinglistHeader[] = {"지역", "카테고리", "제목", "작성자", "마지막 채팅"};
+    public String chattinglistHeader[] = {"지역", "카테고리", "제목", "작성자", "시작 날짜"};
 
     //  이름 닉네임 아이디 비밀번호 지역 폰번호 생일
     public int mainTableWidths[] = {30, 30, 300, 30, 10};  // 열 사이즈 크기 -> 비율로 적용되는 듯
