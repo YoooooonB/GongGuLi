@@ -35,18 +35,15 @@ public class ChatClient extends JFrame implements Runnable{
 
     //Participants Frame
     private JButton participantsButton = null;
-    private JFrame participantsFrame = null;
     private JList<String> participantsList = null;
-    private DefaultListModel<String> participantListModel;
-    private JScrollPane participantsscrollPane = null;
     private TimecheckWindow timecheckWindow = new TimecheckWindow(this);
 
     // 서버에서 각 클라이언트 이름을 받아오는 리스트
-    private ArrayList<String> nameList = null;
+    private ArrayList<String> nameList = new ArrayList<>();
     private int port;
     // 사용자 uuid
     private String uuid = null;
-    private JButton leaveButton = null;
+    private final JButton leaveButton = null;
 
     // 처음 클라이언트가 생성되면 자동으로 로그인 메소드부터 실행 되도록 구현
     public ChatClient(int port, String uuid) {
@@ -121,18 +118,11 @@ public class ChatClient extends JFrame implements Runnable{
         });
 
         // 참가자 문구 생성
-        participantsButton = new JButton("참가자 : 2");
+        participantsButton = new JButton("참가자 : 0");
         participantsButton.setHorizontalAlignment(JButton.RIGHT);
         participantsButton.setBackground(c1);
         participantsButton.setPreferredSize(new Dimension(300, 35));
         participantsButton.setFont(f5);
-
-        participantsButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                getParticipants();
-                showParticipants();
-            }
-        });
 
         // 채팅방 나가기 버튼 생성
         JButton leaveButton = new RoundedButton("나가기");
@@ -179,13 +169,13 @@ public class ChatClient extends JFrame implements Runnable{
 
     //Participants Frame
     private void showParticipants() {
-        participantsFrame = new JFrame();
+        JFrame participantsFrame = new JFrame();
         participantsFrame.setLayout(new BorderLayout());
         participantsFrame.setSize(150, 300);
         participantsFrame.setLocationRelativeTo(null);
         participantsFrame.setResizable(false);
 
-        participantListModel = new DefaultListModel<>();
+        DefaultListModel<String> participantListModel = new DefaultListModel<>();
 
         for (String n : nameList) {
             participantListModel.addElement(n);
@@ -200,7 +190,7 @@ public class ChatClient extends JFrame implements Runnable{
                     if (!e.getValueIsAdjusting()) {
                         String selected_name = participantsList.getSelectedValue();
                         if (selected_name != null) {
-                            kickRequest(selected_name);
+                            //kickRequest(selected_name);
                         }
                     }
                 } catch (Exception exception) {
@@ -209,7 +199,7 @@ public class ChatClient extends JFrame implements Runnable{
             }
         });
 
-        participantsscrollPane = new JScrollPane(participantsList);
+        JScrollPane participantsscrollPane = new JScrollPane(participantsList);
 
         participantsFrame.add(participantsscrollPane, BorderLayout.CENTER);
 
@@ -226,7 +216,7 @@ public class ChatClient extends JFrame implements Runnable{
                     if (readObj instanceof MessageChatRoomResponse messageChatRoomResponse) {
                         getMessage(messageChatRoomResponse);
                     } else if (readObj instanceof JoinMessageChatRoomResponse joinMessageChatRoomResponse) {
-                        //getParticipants();
+                        getParticipants();
 
                         getMessage(joinMessageChatRoomResponse);
                     } else if (readObj instanceof GetParticipantsChatRoomResponse getParticipantsChatRoomResponse) {
@@ -299,15 +289,19 @@ public class ChatClient extends JFrame implements Runnable{
         try {
             objectOutputStream.writeObject(new GetParticipantsChatRoomRequest(port));
 
-            ResponseCode responseCode = (ResponseCode) objectInputStream.readObject();
+            Object object = objectInputStream.readObject();
 
-            if (responseCode.getKey() == ResponseCode.GET_PARTICIPANTS_SUCCESS.getKey()) {
-                GetParticipantsChatRoomResponse getParticipantsChatRoomResponse = (GetParticipantsChatRoomResponse) objectInputStream.readObject();
-                nameList = getParticipantsChatRoomResponse.list();
-                System.out.println(nameList.size());
-            } else {
-                showErrorDialog(responseCode.getValue());
+            if (object instanceof  ResponseCode) {
+                ResponseCode responseCode = (ResponseCode) object;
+                if (responseCode.getKey() == ResponseCode.GET_PARTICIPANTS_SUCCESS.getKey()) {
+                    GetParticipantsChatRoomResponse getParticipantsChatRoomResponse = (GetParticipantsChatRoomResponse) objectInputStream.readObject();
+                    nameList = getParticipantsChatRoomResponse.list();
+                    participantsButton.setText("참가자 : " + nameList.size());
+                } else {
+                    showErrorDialog(responseCode.getValue());
+                }
             }
+
         } catch (Exception exception) {
             exception.printStackTrace();
         }
