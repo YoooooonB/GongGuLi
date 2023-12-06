@@ -13,16 +13,16 @@ public class GetParticipantsChatRoomDAO {
     PreparedStatement pt = null;
     ResultSet rs = null;
     public ArrayList<String> getParticipantsChatRoom(int port) {
-        ArrayList<String> list = null;
+        ArrayList<String> list = new ArrayList<>();
         try {
             GetInfoDAO getInfoDAO = new GetInfoDAO();
             conn = DBConnector.getConnection();
-            String selectSQL = "SELECT uuid FROM chattingMember WHERE port = ?";
+            String selectSQL = "SELECT memberUuid FROM chattingMember WHERE port = ?";
             pt = conn.prepareStatement(selectSQL);
             pt.setInt(1, port);
             rs = pt.executeQuery();
             while (rs.next()) {
-                String nickName = getInfoDAO.getNickNameMethod(rs.getString("uuid"));
+                String nickName = getInfoDAO.getNickNameMethod(rs.getString("memberUuid"));
                 list.add(nickName);
             }
         } catch (Exception exception) {
